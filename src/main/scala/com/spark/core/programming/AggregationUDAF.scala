@@ -21,34 +21,42 @@ class AggregationUDAF extends UserDefinedAggregateFunction {
     valArr1.zip(valArr2).map(t => t._1 + t._2).mkString(";")
   }
 
+  // input field fo aggregation
   override def inputSchema: StructType = {
     StructType(StructField("value", StringType) :: Nil)
   }
 
+  // internal fields to keep for computing aggregation
   override def bufferSchema: StructType = {
     StructType(StructField("aggregate", StringType) :: Nil)
   }
 
+  // output type of our aggregation function
   override def dataType: DataType = {
     StringType
   }
+
 
   override def deterministic: Boolean = {
     true
   }
 
+  // initial values for buffer schema
   override def initialize(buffer: MutableAggregationBuffer): Unit = {
     buffer(0) = "0"
   }
 
+  // updating the buffer schema given an input
   override def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
     buffer(0) = aggregate(buffer.getAs[String](0), input.getAs[String](0))
   }
 
+  // merging two objects with the bufferSchema type
   override def merge(buffer: MutableAggregationBuffer, input: Row): Unit = {
     buffer(0) = aggregate(buffer.getAs[String](0), input.getAs[String](0))
   }
 
+  //outputting the final value
   override def evaluate(buffer: Row): Any = {
     buffer.getAs[String](0)
   }
